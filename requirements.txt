@@ -1,4 +1,7 @@
 streamlit
 google-genai
 dotenv
-langchain_google_genai 
+langchain_google_genai
+langchain_chroma
+langchain_community
+scikit-learn
