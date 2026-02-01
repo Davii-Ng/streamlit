@@ -27,7 +27,7 @@ def main():
     load_dotenv()
     
     GEMINI_API = os.getenv("GEMINI_API_KEY")
-    # CHROMA_API = os.getenv("CHROMA_API_KEY")
+    CHROMA_API = os.getenv("CHROMA_API_KEY")
 
     # model = ChatGoogleGenerativeAI(
     #     model="gemini-3-flash-preview",
@@ -60,25 +60,28 @@ def main():
 
     
 
-    text_splitter = RecursiveCharacterTextSplitter( chunk_size=1000, chunk_overlap=200)
-    texts = text_splitter.split_text(docs[0].page_content)
+    text_splitter = RecursiveCharacterTextSplitter( chunk_size=1000, chunk_overlap=200, add_start_index = True)
+    texts = text_splitter.split_documents(docs)
 
 
 
     query_embeddings = GoogleGenerativeAIEmbeddings(model = "models/gemini-embedding-001", task_type = "RETRIEVAL_QUERY")
     doc_embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", task_type="RETRIEVAL_DOCUMENT")
 
-    q_embed = query_embeddings.embed_query("What is Multi-RAG?")
-    d_embed = doc_embeddings.embed_documents(texts)
-
-    for i, d in enumerate(d_embed):
-        print(f"Document {i + 1}:")
-        print(f"Cosine similarity with query: {cosine_similarity([q_embed], [d])[0][0]}")
-        print(f"Cosine distance with query: {cosine_distances([q_embed], [d])[0][0]}")
-        print(f"Manhanttan distance with query: {manhattan_distances([q_embed], [d])[0][0]}")
-        print(f"Eucledian with query: {euclidean_distances([q_embed], [d])[0][0]}")
-        print("---")
+    # q_embed = query_embeddings.embed_query("What is Multi-RAG?")
+    # d_embed = doc_embeddings.embed_documents(texts)
     
+    vector_store = Chroma(
+    collection_name="example_collection",
+    embedding_function= doc_embeddings,
+    persist_directory="./chroma_langchain_db",  # Where to save data locally, remove if not necessary
+)
+    ids = vector_store.add_documents(documents = texts)
+    
+    embedding = doc_embeddings.embed_query("What is RAG? ")
+    results = vector_store.similarity_search_by_vector(embedding)
+    print(results)
+
 
 if __name__ == '__main__':
     main()
