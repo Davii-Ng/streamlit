@@ -14,6 +14,9 @@ from transformers import GPT2Tokenizer
 from langchain_core.prompts import ChatPromptTemplate
 
 
+from text_splitter import RecursiveSplitter
+
+
 
 class RAG_pipeline():
     def __init__(self):
@@ -77,9 +80,10 @@ def main():
     embedding_function= doc_embeddings,
     persist_directory="./chroma_langchain_db",  # Where to save data locally, remove if not necessary
 )
-    ids = vector_store.add_documents(documents = texts)
+
+    vector_store.add_documents(texts)
     
-    embedding = doc_embeddings.embed_query("Explain what is Multi-RAG? ")
+    embedding =  query_embeddings.embed_query("Explain what is Multi-RAG? ")
     results = vector_store.similarity_search_by_vector(embedding)
     
 
@@ -100,7 +104,7 @@ def main():
     )
 
     chain = prompt | llm
-    res = chain.invoke({"context": results, "question" : "Who is the President of the United States "})
+    res = chain.invoke({"context": results, "question" : "Who is author of the paper? "})
 
     print(res.text)
 
