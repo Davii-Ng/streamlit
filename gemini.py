@@ -12,8 +12,6 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter, CharacterTextSplitter
 from transformers import GPT2Tokenizer
 from langchain_core.prompts import ChatPromptTemplate
-
-
 from text_splitter import RecursiveSplitter
 
 
@@ -44,12 +42,12 @@ def main():
 
 
     
-
+    """Split text into chunks"""
     text_splitter = RecursiveCharacterTextSplitter( chunk_size=1000, chunk_overlap=200, add_start_index = True)
     texts = text_splitter.split_documents(docs)
 
 
-
+    """--------Embedding models-------"""
     query_embeddings = GoogleGenerativeAIEmbeddings(model = "models/gemini-embedding-001", task_type = "RETRIEVAL_QUERY")
     doc_embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", task_type="RETRIEVAL_DOCUMENT")
 
@@ -85,6 +83,9 @@ def main():
     Keep your answer ground in the facts of the DOCUMENT.
     If the DOCUMENT doesn’t contain the facts to answer the QUESTION return NONE
 """
+
+
+
     prompt = ChatPromptTemplate.from_template(template)
 
 
@@ -93,7 +94,7 @@ def main():
 
 
 
-    """  """
+    """---------Start of QA chain-------------"""
     llm = ChatGoogleGenerativeAI(
         model="gemini-3-flash-preview",
         temperature=1.0,  
@@ -118,3 +119,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+#TODO: Add feature reading multiple PDF files
+#TODO: Split into functions for readability
+#TODO: Implement alternates for each process/function
