@@ -11,6 +11,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter, CharacterTextSplitter
 from transformers import GPT2Tokenizer
+from langchain_core.prompts import ChatPromptTemplate
 
 
 
@@ -78,10 +79,30 @@ def main():
 )
     ids = vector_store.add_documents(documents = texts)
     
-    embedding = doc_embeddings.embed_query("What is RAG? ")
+    embedding = doc_embeddings.embed_query("Explain what is Multi-RAG? ")
     results = vector_store.similarity_search_by_vector(embedding)
-    print(results)
+    
 
+    template = """Answer the question based on the following context:
+    {context}
+
+    Question : {question}
+"""
+    prompt = ChatPromptTemplate.from_template(template)
+
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3-flash-preview",
+        temperature=1.0,  
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+        api_key = GEMINI_API
+    )
+
+    chain = prompt | llm
+    res = chain.invoke({"context": results, "question" : "Who is the President of the United States "})
+
+    print(res.text)
 
 if __name__ == '__main__':
     main()

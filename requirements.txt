@@ -8,3 +8,4 @@ scikit-learn
 langchain_text_splitters
 pypdf
 transformers
+langchain
