@@ -33,26 +33,7 @@ def main():
     GEMINI_API = os.getenv("GEMINI_API_KEY")
     CHROMA_API = os.getenv("CHROMA_API_KEY")
 
-    # model = ChatGoogleGenerativeAI(
-    #     model="gemini-3-flash-preview",
-    #     temperature=1.0,  
-    #     max_tokens=None,
-    #     timeout=None,
-    #     max_retries=2,
-    #     api_key = GEMINI_API
-    # )
 
-    # messages = [
-    #     (
-    #         "system",
-    #         "You are a helpful assistant that translates English to French. Translate the user sentence.",
-    #     ),
-    #     ("human", "I love programming."),
-    # ]
-
-    
-    # # ai_msg = model.invoke(messages)
-    # # print(ai_msg.text)
 
     loader = PyPDFLoader(
     "./Multi-RAG.pdf",
@@ -80,20 +61,39 @@ def main():
     embedding_function= doc_embeddings,
     persist_directory="./chroma_langchain_db",  # Where to save data locally, remove if not necessary
 )
+    
 
+
+    """ Add split texts into vector DB"""
     vector_store.add_documents(texts)
+
+
+
     
     embedding =  query_embeddings.embed_query("Explain what is Multi-RAG? ")
     results = vector_store.similarity_search_by_vector(embedding)
     
 
-    template = """Answer the question based on the following context:
+    template = """
+    Answer the question based on the following context:
     {context}
 
     Question : {question}
+
+    INSTRUCTIONS:
+    Answer the users QUESTION using the DOCUMENT text above.
+    Keep your answer ground in the facts of the DOCUMENT.
+    If the DOCUMENT doesn’t contain the facts to answer the QUESTION return NONE
 """
     prompt = ChatPromptTemplate.from_template(template)
 
+
+
+
+
+
+
+    """  """
     llm = ChatGoogleGenerativeAI(
         model="gemini-3-flash-preview",
         temperature=1.0,  
@@ -103,10 +103,18 @@ def main():
         api_key = GEMINI_API
     )
 
-    chain = prompt | llm
-    res = chain.invoke({"context": results, "question" : "Who is author of the paper? "})
 
-    print(res.text)
+    while True:
+        print("Enter your question: \n(NOTE: ENTER Q TO QUIT)")
+        ques = input()
+        if ques == "q":
+            break
+
+        chain = prompt | llm
+        res = chain.invoke({"context": results, "question" : ques})
+        print(res.text)
+
+    
 
 if __name__ == '__main__':
     main()
