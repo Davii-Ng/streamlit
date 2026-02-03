@@ -108,14 +108,14 @@ def main():
 
 
     while True:
-        print("Enter your question: \n(NOTE: ENTER Q TO QUIT)")
+        print("Enter your question: \n(NOTE: ENTER 'q' TO QUIT)")
         ques = input()
         if ques == "q":
             break
 
         chain = prompt | llm
         embedding =  query_embeddings.embed_query(ques)
-        results = vector_store.similarity_search_by_vector(embedding)
+        results = vector_store.similarity_search_by_vector(embedding, k = 3)
         res = chain.invoke({"context": results, "question" : ques})
         print(res.text)
 
@@ -124,6 +124,9 @@ def main():
 if __name__ == '__main__':
     main()
 
-#TODO: Add feature reading multiple PDF files
+
 #TODO: Split into functions for readability
 #TODO: Implement alternates for each process/function
+
+#TODO: deploy pipeline locally
+
