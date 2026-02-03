@@ -31,20 +31,23 @@ def main():
     GEMINI_API = os.getenv("GEMINI_API_KEY")
     CHROMA_API = os.getenv("CHROMA_API_KEY")
 
+    pdf_folder_path = "./data"
+    documents = []
+
+    for file in os.listdir(pdf_folder_path):
+        if file.endswith('.pdf'):
+            pdf_path = os.path.join(pdf_folder_path, file)
+            loader = PyPDFLoader(pdf_path)
+            documents.extend(loader.load())
 
 
-    loader = PyPDFLoader(
-    "./Multi-RAG.pdf",
-    mode="single",
-    pages_delimiter="\n-------THIS IS A CUSTOM END OF PAGE-------\n",
-)
-    docs = loader.load()
+    
 
 
     
     """Split text into chunks"""
     text_splitter = RecursiveCharacterTextSplitter( chunk_size=1000, chunk_overlap=200, add_start_index = True)
-    texts = text_splitter.split_documents(docs)
+    texts = text_splitter.split_documents(documents)
 
 
     """--------Embedding models-------"""
@@ -68,8 +71,7 @@ def main():
 
 
     
-    embedding =  query_embeddings.embed_query("Explain what is Multi-RAG? ")
-    results = vector_store.similarity_search_by_vector(embedding)
+    
     
 
     template = """
@@ -112,6 +114,8 @@ def main():
             break
 
         chain = prompt | llm
+        embedding =  query_embeddings.embed_query(ques)
+        results = vector_store.similarity_search_by_vector(embedding)
         res = chain.invoke({"context": results, "question" : ques})
         print(res.text)
 
