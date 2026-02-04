@@ -52,7 +52,7 @@ def Tokenizer_Text_Splitter(document, chunk_size, chunk_overlap):
     text_splitter = CharacterTextSplitter.from_huggingface_tokenizer(
     tokenizer, chunk_size= chunk_size, chunk_overlap= chunk_overlap
 )
-    text = text_splitter.split(document)
+    text = text_splitter.split_documents(document)
     return text
 
 
@@ -70,7 +70,7 @@ def main():
     pdf_folder_path = "./data"
     docs = load_docs(pdf_folder_path)
 
-    text = Recursive_Text_Splitter(docs, 1000, 200)
+    text = Tokenizer_Text_Splitter(docs, 1000, 200)
 
     print(text)
 
