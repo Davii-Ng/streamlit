@@ -71,7 +71,7 @@ def load_vectorstore(save_path, embedding_model):
 
 def main():
     load_dotenv()
-    embedding_model = os.getenv("EMBEDDING_MODEL")
+    embedding_model_name = os.getenv("EMBEDDING_MODEL")
 
 
     pdf_folder_path = "./data"
@@ -84,7 +84,7 @@ def main():
 
 
 
-    embedding_model = OllamaEmbeddings(model = embedding_model)
+    embedding_model = OllamaEmbeddings(model = embedding_model_name)
 
 
 
@@ -97,7 +97,7 @@ def main():
 
     results = vectorstore.similarity_search(
         "Langchain is a framework that asissts developers to create RAG projects.",
-        k = 2
+        k = 5
     )
     
 
