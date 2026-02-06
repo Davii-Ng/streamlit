@@ -5,6 +5,8 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_ollama import OllamaEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama.llms import OllamaLLM
 
 
 
@@ -58,6 +60,8 @@ def Tokenizer_Text_Splitter(document, chunk_size, chunk_overlap):
     return text
 
 
+
+
 def load_vectorstore(save_path, embedding_model):
     """Load existing vectorstores"""
 
@@ -69,9 +73,15 @@ def load_vectorstore(save_path, embedding_model):
     return vectorstore
 
 
+
+
+
+
+
 def main():
     load_dotenv()
     embedding_model_name = os.getenv("EMBEDDING_MODEL")
+    llm = os.getenv("OLLAMA_LLM")
 
 
     pdf_folder_path = "./data"
@@ -95,14 +105,39 @@ def main():
         vectorstore = FAISS.from_documents(text, embedding_model)
         vectorstore.save_local(save_path)
 
-    results = vectorstore.similarity_search(
-        "Langchain is a framework that asissts developers to create RAG projects.",
-        k = 5
-    )
-    
 
-    for res in results:
-        print(res.page_content)
+
+    template = """
+    Answer the question based on the following context:
+    {context}
+
+    Question : {question}
+
+    INSTRUCTIONS:
+    Answer the users QUESTION using the DOCUMENT text above.
+    Keep your answer ground in the facts of the DOCUMENT.
+    If the DOCUMENT doesn’t contain the facts to answer the QUESTION return NONE
+"""
+
+
+
+    prompt = ChatPromptTemplate.from_template(template)
+    model = OllamaLLM(model=llm)
+
+
+
+    while True:
+        print("Enter your question: \n(NOTE: ENTER 'q' TO QUIT)")
+        ques = input()
+        if ques == "q":
+            break
+        chain = prompt | model
+        results = vectorstore.similarity_search(query = ques, k = 5)
+        res = chain.invoke({"context": results, "question" : ques})
+        print(res)
+        
+     
+    
 
 
 
@@ -112,3 +147,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+#TODO: Bug fixes related to metadata in pdf i.e: unable to answer the author of papers
