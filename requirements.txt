@@ -10,3 +10,5 @@ pypdf
 transformers
 langchain
 ollama
+langchain_ollama
+faiss-cpu

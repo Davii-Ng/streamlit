@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 from transformers import GPT2TokenizerFast
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import FAISS
+from langchain_ollama import OllamaEmbeddings
 
 
 
@@ -56,10 +58,15 @@ def Tokenizer_Text_Splitter(document, chunk_size, chunk_overlap):
     return text
 
 
+def load_vectorstore(save_path, embedding_model):
+    """Load existing vectorstores"""
 
-def text_embedding(documents, embedding_model):
-    """Generate embeddings from """
-    return
+    vectorstore = FAISS.load_local(
+        save_path,
+        embedding_model,
+        allow_dangerous_deserialization = True
+    )
+    return vectorstore
 
 
 def main():
@@ -68,11 +75,35 @@ def main():
 
 
     pdf_folder_path = "./data"
+    save_path = "FAISS"
     docs = load_docs(pdf_folder_path)
 
-    text = Tokenizer_Text_Splitter(docs, 1000, 200)
 
-    print(text)
+
+    text = Recursive_Text_Splitter(docs, 512, 30)
+
+
+
+    embedding_model = OllamaEmbeddings(model = embedding_model)
+
+
+
+
+    if os.path.exists(save_path):
+        vectorstore = load_vectorstore(save_path, embedding_model)
+    else:
+        vectorstore = FAISS.from_documents(text, embedding_model)
+        vectorstore.save_local(save_path)
+
+    results = vectorstore.similarity_search(
+        "Langchain is a framework that asissts developers to create RAG projects.",
+        k = 2
+    )
+    
+
+    for res in results:
+        print(res.page_content)
+
 
 
 
